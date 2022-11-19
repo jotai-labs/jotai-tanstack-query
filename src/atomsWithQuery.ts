@@ -1,9 +1,9 @@
-import { QueryClient, QueryObserver } from '@tanstack/query-core'
 import type {
   QueryKey,
   QueryObserverOptions,
   QueryObserverResult,
 } from '@tanstack/query-core'
+import { QueryClient, QueryObserver } from '@tanstack/query-core'
 import type { Getter, WritableAtom } from 'jotai'
 import { createAtoms } from './common'
 import { queryClientAtom } from './queryClientAtom'
@@ -23,7 +23,10 @@ export function atomsWithQuery<
 >(
   getOptions: (
     get: Getter
-  ) => QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
+  ) => Omit<
+    QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
+    'suspense'
+  >,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ): readonly [
   dataAtom: WritableAtom<TData, Action>,

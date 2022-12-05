@@ -4,8 +4,9 @@ import type {
   InfiniteQueryObserverOptions,
   InfiniteQueryObserverResult,
   QueryKey,
+  QueryObserverResult,
 } from '@tanstack/query-core'
-import type { Getter, WritableAtom } from 'jotai'
+import type { Getter, WritableAtom } from 'jotai/vanilla'
 import { createAtoms } from './common'
 import { queryClientAtom } from './queryClientAtom'
 
@@ -36,8 +37,16 @@ export function atomsWithInfiniteQuery<
   >,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ): readonly [
-  dataAtom: WritableAtom<InfiniteData<TData>, Action>,
-  statusAtom: WritableAtom<InfiniteQueryObserverResult<TData, TError>, Action>
+  dataAtom: WritableAtom<
+    InfiniteData<TData> | Promise<InfiniteData<TData>>,
+    [Action],
+    void | Promise<QueryObserverResult<InfiniteData<TData>, TError>>
+  >,
+  statusAtom: WritableAtom<
+    InfiniteQueryObserverResult<TData, TError>,
+    [Action],
+    void | Promise<QueryObserverResult<InfiniteData<TData>, TError>>
+  >
 ] {
   return createAtoms(
     getOptions,
@@ -50,13 +59,13 @@ export function atomsWithInfiniteQuery<
           refresh()
           return
         }
-        return observer.refetch(action.options).then(() => {})
+        return observer.refetch(action.options)
       }
       if (action.type === 'fetchNextPage') {
-        return observer.fetchNextPage().then(() => {})
+        return observer.fetchNextPage()
       }
       if (action.type === 'fetchPreviousPage') {
-        return observer.fetchPreviousPage().then(() => {})
+        return observer.fetchPreviousPage()
       }
     }
   )

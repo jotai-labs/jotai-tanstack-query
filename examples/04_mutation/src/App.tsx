@@ -1,6 +1,6 @@
 import React from 'react'
-import { useAtom } from 'jotai'
 import { atomsWithMutation } from 'jotai-tanstack-query'
+import { useAtom } from 'jotai/react'
 
 const [, statusAtom] = atomsWithMutation(() => ({
   mutationKey: ['posts'],

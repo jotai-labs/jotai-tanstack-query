@@ -4,7 +4,7 @@ import type {
   MutationObserverOptions,
   MutationObserverResult,
 } from '@tanstack/query-core'
-import type { Getter, WritableAtom } from 'jotai'
+import type { Getter, WritableAtom } from 'jotai/vanilla'
 import { createAtoms } from './common'
 import { queryClientAtom } from './queryClientAtom'
 
@@ -25,22 +25,20 @@ export function atomsWithMutation<
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ): readonly [
   dataAtom: WritableAtom<
-    TData,
-    Action<TData, TError, TVariables, TContext>,
-    Promise<void>
+    TData | Promise<TData>,
+    [Action<TData, TError, TVariables, TContext>],
+    Promise<TData>
   >,
   statusAtom: WritableAtom<
     MutationObserverResult<TData, TError, TVariables, TContext>,
-    Action<TData, TError, TVariables, TContext>,
-    Promise<void>
+    [Action<TData, TError, TVariables, TContext>],
+    Promise<TData>
   >
 ] {
   return createAtoms(
     getOptions,
     getQueryClient,
     (client, options) => new MutationObserver(client, options),
-    async (action, observer) => {
-      await observer.mutate(...action)
-    }
+    (action, observer) => observer.mutate(...action)
   )
 }

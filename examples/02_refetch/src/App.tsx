@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react'
-import { atom, useAtom, useSetAtom } from 'jotai'
 import { atomsWithQuery } from 'jotai-tanstack-query'
+import { useAtom, useSetAtom } from 'jotai/react'
+import { atom } from 'jotai/vanilla'
 import { ErrorBoundary } from 'react-error-boundary'
 import type { FallbackProps } from 'react-error-boundary'
 

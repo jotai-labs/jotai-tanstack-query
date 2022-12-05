@@ -1,6 +1,7 @@
 import React from 'react'
 import { fireEvent, render } from '@testing-library/react'
-import { atom, useAtom } from 'jotai'
+import { useAtom } from 'jotai/react'
+import { atom } from 'jotai/vanilla'
 import { atomsWithQuery } from '../src/index'
 
 describe('issue #9', () => {

@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react'
-import { useAtom } from 'jotai'
 import { atomsWithInfiniteQuery } from 'jotai-tanstack-query'
+import { useAtom } from 'jotai/react'
 
 const [postsAtom] = atomsWithInfiniteQuery(() => ({
   queryKey: ['posts'],

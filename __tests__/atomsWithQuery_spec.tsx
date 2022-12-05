@@ -2,8 +2,17 @@ import React, { Component, StrictMode, Suspense, useState } from 'react'
 import type { ReactNode } from 'react'
 import { QueryClient } from '@tanstack/query-core'
 import { fireEvent, render } from '@testing-library/react'
-import { atom, useAtom, useSetAtom } from 'jotai'
+import { useAtom, useSetAtom } from 'jotai/react'
+import { atom } from 'jotai/vanilla'
 import { atomsWithQuery } from '../src/index'
+
+beforeEach(() => {
+  jest.useFakeTimers()
+})
+afterEach(() => {
+  jest.runAllTimers()
+  jest.useRealTimers()
+})
 
 it('query basic test', async () => {
   let resolve = () => {}
@@ -361,7 +370,7 @@ it('query with enabled 2', async () => {
       enabled: isEnabled,
       queryKey: ['enabled_toggle'],
       queryFn: async () => {
-        await new Promise<void>((r) => setTimeout(r, 100)) // FIXME can avoid?
+        await new Promise<void>((r) => setTimeout(r, 10 * 1000))
         return mockFetch({ slug: `hello-${slug}` })
       },
     }
@@ -409,20 +418,18 @@ it('query with enabled 2', async () => {
     </StrictMode>
   )
 
-  // await findByText('loading')
-  await new Promise((r) => setTimeout(r, 100)) // FIXME we want to avoid this
-  expect(mockFetch).toHaveBeenCalledTimes(1)
+  jest.runOnlyPendingTimers()
   await findByText('slug: hello-first')
+  expect(mockFetch).toHaveBeenCalledTimes(1)
 
-  await new Promise((r) => setTimeout(r, 100)) // FIXME we want to avoid this
   fireEvent.click(getByText('set disabled'))
   fireEvent.click(getByText('set slug'))
 
   await findByText('slug: hello-first')
   expect(mockFetch).toHaveBeenCalledTimes(1)
 
-  await new Promise((r) => setTimeout(r, 100)) // FIXME we want to avoid this
   fireEvent.click(getByText('set enabled'))
+  jest.runOnlyPendingTimers()
   await findByText('slug: hello-world')
   expect(mockFetch).toHaveBeenCalledTimes(2)
 })
@@ -498,7 +505,6 @@ it('query with initialData test', async () => {
       return mockFetch({ count: 10 })
     },
     initialData: { response: { count: 0 } },
-    refetchInterval: 100,
   }))
   const Counter = () => {
     const [
@@ -709,7 +715,6 @@ describe('error handling', () => {
     await findByText('count: 1')
 
     fireEvent.click(getByText('refetch'))
-    resolve()
     await findByText('loading')
     resolve()
     await findByText('errored')

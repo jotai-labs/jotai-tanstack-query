@@ -4,7 +4,7 @@ import type {
   QueryObserverOptions,
   QueryObserverResult,
 } from '@tanstack/query-core'
-import type { Getter, WritableAtom } from 'jotai'
+import type { Getter, WritableAtom } from 'jotai/vanilla'
 import { createAtoms } from './common'
 import { queryClientAtom } from './queryClientAtom'
 
@@ -26,8 +26,16 @@ export function atomsWithQuery<
   ) => QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ): readonly [
-  dataAtom: WritableAtom<TData, Action>,
-  statusAtom: WritableAtom<QueryObserverResult<TData, TError>, Action>
+  dataAtom: WritableAtom<
+    TData | Promise<TData>,
+    [Action],
+    void | Promise<QueryObserverResult<TData, TError>>
+  >,
+  statusAtom: WritableAtom<
+    QueryObserverResult<TData, TError>,
+    [Action],
+    void | Promise<QueryObserverResult<TData, TError>>
+  >
 ] {
   return createAtoms(
     getOptions,
@@ -40,7 +48,7 @@ export function atomsWithQuery<
           refresh()
           return
         }
-        return observer.refetch(action.options).then(() => {})
+        return observer.refetch(action.options)
       }
     }
   )

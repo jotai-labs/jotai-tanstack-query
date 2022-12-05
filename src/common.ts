@@ -1,7 +1,7 @@
 import { QueryClient, isCancelledError } from '@tanstack/query-core'
-import { atom } from 'jotai'
-import type { Getter } from 'jotai'
-import { atomWithObservable } from 'jotai/utils'
+import { atom } from 'jotai/vanilla'
+import type { Getter } from 'jotai/vanilla'
+import { atomWithObservable } from 'jotai/vanilla/utils'
 
 export const createAtoms = <
   Options,
@@ -17,7 +17,7 @@ export const createAtoms = <
     subscribe(callback: (result: Result) => void): () => void
   },
   Action,
-  ActionResult extends Promise<void> | void
+  ActionResult
 >(
   getOptions: (get: Getter) => Options,
   getQueryClient: (get: Getter) => QueryClient,
@@ -59,8 +59,7 @@ export const createAtoms = <
     const observable = {
       subscribe: (arg: { next: (result: Result) => void }) => {
         const callback = (result: Result) => {
-          const notifyResult = () =>
-            (typeof arg === 'function' ? arg : arg.next)(result)
+          const notifyResult = () => arg.next(result)
           if ((observer as any)[IN_RENDER]) {
             Promise.resolve().then(notifyResult)
           } else {
@@ -105,8 +104,7 @@ export const createAtoms = <
             (result.isSuccess && result.data !== undefined) ||
             (result.isError && !isCancelledError(result.error))
           ) {
-            const notifyResult = () =>
-              (typeof arg === 'function' ? arg : arg.next)(result)
+            const notifyResult = () => arg.next(result)
             if ((observer as any)[IN_RENDER]) {
               Promise.resolve().then(notifyResult)
             } else {
@@ -123,14 +121,21 @@ export const createAtoms = <
     return resultAtom
   })
 
+  const returnResultData = (result: Result) => {
+    if (result.error) {
+      throw result.error
+    }
+    return result.data
+  }
+
   const dataAtom = atom(
     (get) => {
       const resultAtom = get(baseDataAtom)
       const result = get(resultAtom)
-      if (result.error) {
-        throw result.error
+      if (result instanceof Promise) {
+        return result.then(returnResultData)
       }
-      return result.data
+      return returnResultData(result)
     },
     (_get, set, action: Action) => set(statusAtom, action)
   )

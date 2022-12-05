@@ -1,8 +1,17 @@
 import React, { Component, StrictMode, Suspense, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { fireEvent, render } from '@testing-library/react'
-import { atom, useAtom, useSetAtom } from 'jotai'
+import { useAtom, useSetAtom } from 'jotai/react'
+import { atom } from 'jotai/vanilla'
 import { atomsWithInfiniteQuery } from '../src/index'
+
+beforeEach(() => {
+  jest.useFakeTimers()
+})
+afterEach(() => {
+  jest.runAllTimers()
+  jest.useRealTimers()
+})
 
 it('infinite query basic test', async () => {
   let resolve = () => {}
@@ -160,6 +169,8 @@ it('infinite query with enabled', async () => {
 })
 
 it('infinite query with enabled 2', async () => {
+  jest.useRealTimers() // FIXME can avoid?
+
   const enabledAtom = atom<boolean>(true)
   const slugAtom = atom<string | null>('first')
 
